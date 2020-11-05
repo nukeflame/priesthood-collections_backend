@@ -25,6 +25,7 @@ class Product extends JsonResource
             'sku' => $this->sku,
             'description' => $this->description,
             'specifications' => $this->specifications,
+            'packaging' => $this->packaging,
             'media' => new MediaCollection($this->media),
             'comparePrice' => $this->compare_price,
             'productThumb' => $this->product_thumbnail,

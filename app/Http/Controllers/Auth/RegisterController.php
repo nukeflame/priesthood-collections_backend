@@ -10,11 +10,10 @@ use App\Models\Order;
 use App\Models\VerifyUser;
 use Hash;
 use App\Http\Resources\Auth\Auth as AuthResource;
-use  App\Mail\Verification\CustomVerifyEmailQueued;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Auth;
+use App\Notifications\Auth\VerifyEmailNotification;
 
 class RegisterController extends Controller
 {
@@ -32,32 +31,23 @@ class RegisterController extends Controller
         VerifyUser::create([
             'user_id' => $user->id,
             'token' => (string) Str::uuid(),
-            '' => Carbon::now()->addMinutes(60),
+            'expires_at' => Carbon::now()->addHours(2),
             'otp' => mt_rand(100000, 999999)
         ]);
-        
-        Mail::to($user->email)->send(new CustomVerifyEmailQueued($user));
-        // //
-        // //auth token
-        // $acess = $user->createToken('PriestHood Password Grant Client');
-        // $accessToken = $acess->accessToken;
-        // $token = $acess->token;
-        // $expiresIn = time($token->expires_at);
-        // $data = [
-        //     'userData' =>
-        //     'access_token' => $accessToken,
-        //     'expires_in' => $expiresIn,
-        // ];
-
+        //
+        $user->notify(new VerifyEmailNotification($user));
         return  response()->json(new AuthResource($user));
     }
 
     public function authenticate(Request $request)
     {
         $verifyUser = VerifyUser::where('token', $request->token)->first();
+        $user = $verifyUser->user;
         if (isset($verifyUser)) {
-            $user = $verifyUser->user;
             return  response()->json(new AuthResource($user));
+        } else {
+            $user->delete();
+            return  response()->json(['error' => 'Token not found'], 404);
         }
     }
 
@@ -69,28 +59,58 @@ class RegisterController extends Controller
             $verifyUser->update();
             $user = $verifyUser->user;
             // send mail
-            Mail::to($user->email)->send(new CustomVerifyEmailQueued($user));
-
+            $user->notify(new VerifyEmailNotification($user));
             return  response()->json(new AuthResource($user));
+        } else {
+            return  response()->json(['error' => 'Token not found'], 404);
         }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::find($id);
+        $user->firstname = $request->firstname;
+        $user->lastname = $request->lastname;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->update();
+        $user->customers()->attach(4);//customer role
+        
+        $user->notify(new VerifyEmailNotification($user));
+        return  response()->json(new AuthResource($user));
     }
 
     public function verifyUser(Request $request)
     {
         $verifyUser = VerifyUser::where('token', $request->token)->first();
+        $message = [];
         if (isset($verifyUser)) {
             $user = $verifyUser->user;
             if ($user->hasVerifiedEmail()) {
-                return response()->json('Your e-mail is verified', 422);
-            } elseif ((int) $verifyUser->otp === (int) $request->otpNo) {
-                $user->markEmailAsVerified();
-                return  response()->json(Auth::login($user));
+                $message = ['verified' => 'Your e-mail is verified'];
+                return response()->json($message, 422);
+            } else {
+                if (boolval((int) $verifyUser->otp === (int) $request->otpNo)) {
+                    $user->markEmailAsVerified();
+                    $verifyUser->delete();
+                    //auth token
+                    $acess = $user->createToken('PriestHood Password Grant Client');
+                    $accessToken = $acess->accessToken;
+                    $token = $acess->token;
+                    $expiresIn = time($token->expires_at);
+                    $data = [
+                        'userData' => new AuthResource($user),
+                        'access_token' => $accessToken,
+                        'expires_in' => $expiresIn,
+                        'token_type' =>  "Bearer"
+                    ];
+
+                    return response()->json($data);
+                } else {
+                    $message = ['error' => 'Your OTP is invalid'];
+                    return response()->json($message, 422);
+                }
             }
         }
-        
-        // if (isset($verifyUser)) {
-        //     $user = $verifyUser->user;
-        //     return  response()->json(new AuthResource($user));
-        // }
     }
 }

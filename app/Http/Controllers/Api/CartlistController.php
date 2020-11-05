@@ -61,7 +61,7 @@ class CartlistController extends Controller
     public function store(Request $request)
     {
         $product = Product::find($request->id);
-        //save cart
+        // //save cart
         $cart = $this->add($product, $product->id);
         return  new CartlistResource($cart);
     }
@@ -84,6 +84,7 @@ class CartlistController extends Controller
                 $cart->Price = $c['Price'];
                 $cart->TotalPrice = $c['TotalPrice'];
                 $cart->SKU = $c['SKU'];
+                $cart->ProductThumb = $c['ProductThumb'];
                 $cart->Quantity = $c['Quantity'];
                 $cart->userId =  $user->id;
                 $cart->processed =  0;
@@ -181,9 +182,10 @@ class CartlistController extends Controller
             $cart->Price = $storedItem['price'];
             $cart->TotalPrice = $storedItem['totalPrice'];
             $cart->SKU = $item->sku;
+            $cart->ProductThumb = $item->product_thumbnail;
             $cart->Quantity = $storedItem['totalQty'];
             $cart->processed =  0;
-            $cart->userId =  1;
+            $cart->userId =  $auth->id;
             $cart->save();
         }
 

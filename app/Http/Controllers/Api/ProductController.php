@@ -123,4 +123,15 @@ class ProductController extends Controller
         $product->delete();
         return new ProductResource($product);
     }
+
+    /**
+     * Sort the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function sort(Request $request)
+    {
+        return  response()->json($request->all());
+    }
 }

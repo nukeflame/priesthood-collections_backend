@@ -7,7 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class User extends Authenticatable 
+class User extends Authenticatable
 {
     use HasApiTokens, Notifiable, SoftDeletes;
 
@@ -73,7 +73,7 @@ class User extends Authenticatable
         return $this->hasMany('App\Models\Post', 'post_author');
     }
 
-    public function verifyUser() 
+    public function verifyUser()
     {
         return $this->hasOne('App\Models\VerifyUser');
     }

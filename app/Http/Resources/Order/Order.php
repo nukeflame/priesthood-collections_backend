@@ -28,6 +28,7 @@ class Order extends JsonResource
             'billing' => new BillingResource($this->billing),
             'address' => $this->address,
             'items' => $this->cart != null ? json_decode($this->cart) : [],
+            'orderThumbnail' => $this->cart_thumb,
             'createdAt' => $this->created_at,
         ];
     }

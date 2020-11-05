@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class VerifyUser extends Model
 {
-    protected $fillable = ['user_id','otp','token'];
+    protected $fillable = ['user_id','otp','token','expires_at'];
  
     public function user()
     {

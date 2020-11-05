@@ -19,6 +19,6 @@ Route::get('/', function () {
 
 // Auth::routes(['verify' => true]);
 
-Route::get('/check', function () {
-    return "hello";
-});
+Route::get('/check', 'Api\UserController@index');
+
+

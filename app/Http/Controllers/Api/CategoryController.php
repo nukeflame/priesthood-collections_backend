@@ -19,8 +19,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $cat = Category::all();
-        return new CategoryCollection($cat);
+        $parentCategories = Category::where('parent_id', 0)->get();
+        return new CategoryCollection($parentCategories);
     }
 
     /**

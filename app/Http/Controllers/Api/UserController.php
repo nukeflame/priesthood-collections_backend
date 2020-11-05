@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\User;
 use Auth;
 use App\Http\Resources\User\User as UserResource;
+use Illuminate\Support\Facades\Redis;
 
 class UserController extends Controller
 {
@@ -17,7 +18,12 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        $redis = Redis::connection();
+        try {
+            var_dump($redis->ping());
+        } catch (Exception $e) {
+            $e->getMessage();
+        }
     }
 
     /**

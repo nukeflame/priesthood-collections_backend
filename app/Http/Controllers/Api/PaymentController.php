@@ -15,6 +15,7 @@ use App\Models\Charge;
 use App\Models\Billing;
 use App\Models\MpesaTransaction;
 use App\Models\MpesaTransError;
+use App\Models\Stock;
 use Auth;
 
 class PaymentController extends Controller
@@ -22,12 +23,21 @@ class PaymentController extends Controller
     public function customerMpesaSTKPush(MpesaRequest $request)
     {
         $cartlist = Cartlist::whereIn('id', $request->cartIds)->get();
+        $productsSKU = [];
         foreach ($cartlist as $cart) {
             $cart->processed = 1;
             $cart->update();
+            array_push($productsSKU, $cart->SKU);
         }
         //find order
         $order = Order::findOrFail($request->orderId);
+        // update mpesa no
+        $addressMob =  "+" . $request->mpesaNo;
+        $address =  $order->address;
+        if ($address->mobile_no !== $addressMob) {
+            $address->mobile_no = $addressMob;
+            $address->update();
+        }
         // create charge
         $charges = Charge::create(array(
             "amount" => $order->total,
@@ -36,14 +46,22 @@ class PaymentController extends Controller
             "description" => "Mpesa Transaction",
             'transaction_id' => 1
         ));
-
+        //update order
         $order->cart = json_encode($cartlist);
         $order->payment_id = $charges->id;
         $order->order_status_id = 3;
+        $order->cart_thumb = $cartlist[0]->ProductThumb;
         $order->update();
-        //clear cart
+        //check stock
+        $stocks = Stock::whereIn('sku', $productsSKU)->get();
+        foreach ($stocks as $stock) {
+            $stock->stock_quantity =   $stock->stock_quantity !== 0 ?  (int) $stock->stock_quantity - 1 : 0;
+            $stock->update();
+        }
+        // clear cart
         Cartlist::whereIn('id', $request->cartIds)->delete();
-     
+        
+        //mpesa auth
 
         // $api_URL = env('MPESA_STK_API');
         // $lipa_time = Carbon::rawParse('now')->format('YmdHms');

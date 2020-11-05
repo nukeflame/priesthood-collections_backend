@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:api')->group(function () {
     // login
-    Route::get('login', 'Auth\LoginController@login');
+    Route::get('login', 'Auth\LoginController@index');
+    Route::get('logout', 'Auth\LoginController@logout');
     // users
     Route::get('users', 'Api\UserController@index');
     Route::get('users/{user}', 'Api\UserController@show');
@@ -75,14 +76,18 @@ Route::middleware('auth:api')->group(function () {
     Route::post('payment/validation', 'Api\PaymentController@mpesaValidation');
     Route::post('payment/transaction/confirmation', 'Api\PaymentController@mpesaConfirmation');
 });
+//login
+Route::post('loginAuth', 'Auth\LoginController@login')->name('verification');
 //register
 Route::post('register', 'Auth\RegisterController@register');
 Route::put('register/{updateOtp}', 'Auth\RegisterController@updateOtp');
+Route::put('register/user/{user}', 'Auth\RegisterController@update');
 Route::post('register/authenticate', 'Auth\RegisterController@authenticate');
 Route::post('register/verifyUser', 'Auth\RegisterController@verifyUser');
 // products
 Route::get('products', 'Api\ProductController@index');
 Route::get('products/{product}', 'Api\ProductController@show');
+Route::post('products/sort', 'Api\ProductController@sort');
 //categories
 Route::get('categories', 'Api\CategoryController@index');
 Route::get('categories/{category}', 'Api\CategoryController@show');

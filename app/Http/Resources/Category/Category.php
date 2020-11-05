@@ -21,8 +21,7 @@ class Category extends JsonResource
             'description' => $this->description,
             'products' => $this->products,
             'parent' => $this->parent,
-            'children' => $this->children,
-            
+            'subcategory' => $this->subcategory,
         ];
     }
 }

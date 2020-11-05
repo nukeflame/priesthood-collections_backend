@@ -20,6 +20,7 @@ class Cartlist extends JsonResource
             'Media' => json_decode($this->Media),
             'Price' => $this->Price,
             'ProductName' => $this->ProductName,
+            'ProductThumb' => $this->ProductThumb,
             'Quantity' => $this->Quantity,
             'SKU' => $this->SKU,
             'TotalPrice' => $this->TotalPrice,
